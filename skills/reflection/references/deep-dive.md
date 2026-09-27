@@ -76,7 +76,7 @@ reviewer = LlmAgent(name="FactChecker", instruction="""
     1. Read the text provided in the state key 'draft_text'.
     2. Carefully verify the factual accuracy of all claims.
     3. Your final output must be a dictionary containing two keys:
-       - "status": "ACCURATE" or "INACCURATE".
+       - "status": "ACCURATE", "INACCURATE", or "TEMPORAL_CONFLICT".
        - "reasoning": a clear explanation citing specific issues if any.""",
     output_key="review_output")
 review_pipeline = SequentialAgent(name="WriteAndReview_Pipeline", sub_agents=[generator, reviewer])
@@ -103,7 +103,7 @@ ARTIFACT: {artifact}
 - **Single-pass generate-critique-refine** — one fixed round of draft, critique, rewrite; wins when quality matters but the cost ceiling is a known 3 calls.
 - **Iterative loop with stop phrase** — repeat until the critic emits a sentinel (`CODE_IS_PERFECT`) or `max_iterations` is hit; wins for code and long-form text that converge over rounds.
 - **Producer-Critic (separate agents)** — a distinct critic agent with its own role and rubric judges the producer's output; wins on high-stakes or specialist evaluation where self-review is too lenient.
-- **Structured-verdict critique** — the critic returns `{"status": "ACCURATE"|"INACCURATE", "reasoning": ...}` instead of prose; wins when control flow must branch on the verdict.
+- **Structured-verdict critique** — the critic returns `{"status": "ACCURATE"|"INACCURATE"|"TEMPORAL_CONFLICT", "reasoning": ...}` instead of prose; wins when control flow must branch on the verdict.
 - **Tool-grounded reflection** — critique comes from running tests, a linter, or static analysis rather than from a model; wins whenever an objective oracle exists.
 
 ## More prompt templates
@@ -132,7 +132,7 @@ You are a meticulous fact-checker.
 1. Read the text provided in the state key 'draft_text'.
 2. Carefully verify the factual accuracy of all claims.
 3. Your final output must be a dictionary containing two keys:
-   - "status": either "ACCURATE" or "INACCURATE".
+   - "status": either "ACCURATE", "INACCURATE", or "TEMPORAL_CONFLICT".
    - "reasoning": a clear explanation, citing specific issues if any.
 ```
 
